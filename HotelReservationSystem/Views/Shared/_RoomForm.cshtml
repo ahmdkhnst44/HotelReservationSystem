@@ -1,0 +1,31 @@
+@model Room
+<div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+<div class="form-grid two-columns">
+    <div class="form-field">
+        <label asp-for="RoomNumber">@L["RoomNumber"]</label>
+        <input asp-for="RoomNumber" class="form-control" placeholder="101" />
+        <span asp-validation-for="RoomNumber" class="field-validation"></span>
+    </div>
+    <div class="form-field">
+        <label asp-for="Type">@L["RoomType"]</label>
+        <select asp-for="Type" class="form-select">
+            <option value="Standard">@L["Standard"]</option>
+            <option value="Deluxe">@L["Deluxe"]</option>
+            <option value="Suite">@L["Suite"]</option>
+            <option value="Family">@L["Family"]</option>
+        </select>
+        <span asp-validation-for="Type" class="field-validation"></span>
+    </div>
+    <div class="form-field full-width">
+        <label asp-for="PricePerNight">@L["PricePerNight"]</label>
+        <div class="currency-input"><span>@L["Currency"]</span><input asp-for="PricePerNight" class="form-control" min="1" step="0.01" /></div>
+        <span asp-validation-for="PricePerNight" class="field-validation"></span>
+    </div>
+    <div class="form-field full-width">
+        <label class="switch-field">
+            <input asp-for="IsAvailable" type="checkbox" />
+            <span class="switch-control"></span>
+            <span>@L["EnabledForBooking"]</span>
+        </label>
+    </div>
+</div>

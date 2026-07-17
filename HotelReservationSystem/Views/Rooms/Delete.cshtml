@@ -1,0 +1,30 @@
+@model Room
+@{
+    ViewData["Title"] = L["DeleteRoom"];
+}
+<section class="state-page">
+    <div class="state-card surface-card danger-state">
+        <span class="state-icon">×</span>
+        <span class="section-kicker">ADMIN</span>
+        <h1>@L["DeleteRoom"] #@Model.RoomNumber</h1>
+        <p>@L["DeleteRoomQuestion"]</p>
+        @if (Model.Bookings.Count > 0)
+        {
+            <div class="app-alert error-alert inline-alert"><span>!</span><span>@L["RoomHasBookings"]</span></div>
+        }
+        <div class="summary-row"><span>@L["RoomType"]</span><strong>@L.RoomType(Model.Type)</strong></div>
+        <div class="summary-row"><span>@L["PricePerNight"]</span><strong>@L["Currency"]@Model.PricePerNight.ToString("0.##")</strong></div>
+        <form asp-action="Delete" method="post" class="form-actions centered-actions">
+            <input type="hidden" asp-for="Id" />
+            <a class="btn btn-ghost" asp-action="Index">@L["Cancel"]</a>
+            @if (Model.Bookings.Count > 0)
+            {
+                <button class="btn btn-danger" type="submit" disabled>@L["DeleteRoom"]</button>
+            }
+            else
+            {
+                <button class="btn btn-danger" type="submit">@L["DeleteRoom"]</button>
+            }
+        </form>
+    </div>
+</section>

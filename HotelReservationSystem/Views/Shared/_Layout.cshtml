@@ -1,0 +1,143 @@
+@{
+    var isArabic = CultureInfo.CurrentUICulture.TwoLetterISOLanguageName == "ar";
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var returnUrl = $"{Context.Request.Path}{Context.Request.QueryString}";
+}
+<!DOCTYPE html>
+<html lang="@(isArabic ? "ar" : "en")" dir="@(isArabic ? "rtl" : "ltr")" data-theme="light">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0f766e" />
+    <meta name="description" content="Aurora Hotel bilingual reservation experience" />
+    <title>@ViewData["Title"] - @L["AppName"]</title>
+    <script>
+        (function () {
+            var savedTheme = localStorage.getItem('hotel-theme');
+            var preferredDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+            document.documentElement.dataset.theme = savedTheme || (preferredDark ? 'dark' : 'light');
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800&amp;family=Plus+Jakarta+Sans:wght@400;500;600;700;800&amp;display=swap" rel="stylesheet" />
+    @if (isArabic)
+    {
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.rtl.min.css" />
+    }
+    else
+    {
+        <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    }
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="top-offer-bar">
+        <div class="container offer-bar-inner">
+            <span class="offer-spark">✦</span>
+            <span>@L["PromoBar"]</span>
+            <a asp-controller="Rooms" asp-action="Index">@L["ExploreRooms"] <span aria-hidden="true">→</span></a>
+        </div>
+    </div>
+
+    <header class="site-header" data-site-header>
+        <nav class="navbar navbar-expand-lg">
+            <div class="container">
+                <a class="navbar-brand" asp-controller="Home" asp-action="Index" aria-label="@(L["AppName"])">
+                    <span class="brand-mark"><span>A</span></span>
+                    <span class="brand-copy">
+                        <strong>@L["AppName"]</strong>
+                        <small>Hotel Collection</small>
+                    </span>
+                </a>
+
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar" aria-controls="mainNavbar" aria-expanded="false" aria-label="@(L["Menu"])">
+                    <span></span><span></span><span></span>
+                </button>
+
+                <div class="collapse navbar-collapse" id="mainNavbar">
+                    <ul class="navbar-nav mx-auto">
+                        <li class="nav-item"><a class="nav-link @(currentController == "Home" ? "active" : "")" asp-controller="Home" asp-action="Index">@L["Home"]</a></li>
+                        <li class="nav-item"><a class="nav-link @(currentController == "Rooms" ? "active" : "")" asp-controller="Rooms" asp-action="Index">@L["Rooms"]</a></li>
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <li class="nav-item"><a class="nav-link @(currentController == "Bookings" ? "active" : "")" asp-controller="Bookings" asp-action="Index">@(User.IsInRole(AppRoles.Admin) ? L["AllBookings"] : L["Bookings"])</a></li>
+                        }
+                        <li class="nav-item"><a class="nav-link" asp-controller="Home" asp-action="Privacy">@L["About"]</a></li>
+                    </ul>
+
+                    <div class="nav-actions">
+                        <form asp-controller="Localization" asp-action="ChangeCulture" method="post" class="language-form">
+                            <input type="hidden" name="returnUrl" value="@returnUrl" />
+                            <button class="icon-button language-button" type="submit" name="culture" value="@(isArabic ? "en" : "ar")" title="@(L["Language"])">
+                                <span class="globe-icon" aria-hidden="true">◎</span><span>@(isArabic ? "EN" : "ع")</span>
+                            </button>
+                        </form>
+
+                        <button class="icon-button theme-toggle" type="button" id="themeToggle" title="@(L["Theme"])">
+                            <span class="theme-icon" aria-hidden="true">☾</span>
+                        </button>
+
+                        @if (User.Identity?.IsAuthenticated == true)
+                        {
+                            <div class="user-menu dropdown">
+                                <button class="user-button dropdown-toggle" data-bs-toggle="dropdown" type="button" aria-expanded="false">
+                                    <span class="user-avatar">@((User.Identity.Name ?? "U").Substring(0, 1).ToUpperInvariant())</span>
+                                    <span class="user-email">@User.Identity.Name</span>
+                                </button>
+                                <div class="dropdown-menu dropdown-menu-end app-dropdown">
+                                    @if (User.IsInRole(AppRoles.Admin))
+                                    {
+                                        <span class="dropdown-header">@L["Admin"]</span>
+                                        <a class="dropdown-item" asp-controller="Rooms" asp-action="Create">@L["AddRoom"]</a>
+                                    }
+                                    <a class="dropdown-item" asp-controller="Bookings" asp-action="Index">@(User.IsInRole(AppRoles.Admin) ? L["AllBookings"] : L["Bookings"])</a>
+                                    <div class="dropdown-divider"></div>
+                                    <form asp-controller="Account" asp-action="Logout" method="post"><button type="submit" class="dropdown-item danger-item">@L["Logout"]</button></form>
+                                </div>
+                            </div>
+                        }
+                        else
+                        {
+                            <a class="btn btn-ghost btn-sm" asp-controller="Account" asp-action="Login">@L["Login"]</a>
+                            <a class="btn btn-primary btn-sm" asp-controller="Account" asp-action="Register">@L["Register"]</a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main class="page-shell">
+        <div class="container alert-container">
+            @if (TempData["Success"] is string success)
+            {
+                <div class="app-alert success-alert" role="alert"><span>✓</span><span>@success</span><button type="button" data-alert-close aria-label="Close">×</button></div>
+            }
+            @if (TempData["Error"] is string error)
+            {
+                <div class="app-alert error-alert" role="alert"><span>!</span><span>@error</span><button type="button" data-alert-close aria-label="Close">×</button></div>
+            }
+        </div>
+        @RenderBody()
+    </main>
+
+    <footer class="site-footer">
+        <div class="container footer-grid">
+            <div class="footer-brand-block">
+                <a class="navbar-brand footer-logo" asp-controller="Home" asp-action="Index"><span class="brand-mark"><span>A</span></span><span class="brand-copy"><strong>@L["AppName"]</strong><small>@L["FooterText"]</small></span></a>
+                <p>@L["HeroText"]</p>
+            </div>
+            <div><h3>@L["ExploreExperience"]</h3><a asp-controller="Rooms" asp-action="Index">@L["Rooms"]</a><a asp-controller="Home" asp-action="Privacy">@L["About"]</a></div>
+            <div><h3>@L["BookWithConfidence"]</h3><span>@L["FreeCancellation"]</span><span>@L["NoCardFees"]</span><span>@L["InstantConfirmation"]</span></div>
+            <div class="footer-code"><span>@L["SpecialOffer"]</span><strong>AURORA10</strong><small>@L["PromoBar"]</small></div>
+        </div>
+        <div class="container footer-bottom"><span>© @DateTime.Now.Year @L["AppName"]</span><span>ASP.NET Core MVC • University Project</span></div>
+    </footer>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

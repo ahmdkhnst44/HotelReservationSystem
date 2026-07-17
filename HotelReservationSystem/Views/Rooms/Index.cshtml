@@ -1,0 +1,96 @@
+@model RoomListViewModel
+@{
+    ViewData["Title"] = L["Rooms"];
+}
+
+<section class="rooms-hero">
+    <div class="container rooms-hero-inner">
+        <div class="reveal"><span class="section-kicker">AURORA COLLECTION</span><h1>@(Model.HasSearch ? L["SearchResults"] : L["AvailableRooms"])</h1><p>@L["RoomsIntro"]</p></div>
+        @if (User.IsInRole(AppRoles.Admin))
+        {
+            <a class="btn btn-light" asp-action="Create">＋ @L["AddRoom"]</a>
+        }
+    </div>
+</section>
+
+<section class="rooms-search-section">
+    <div class="container">
+        <form class="rooms-filter-card reveal" method="get">
+            <div class="filter-field wide"><label for="checkIn">@L["CheckIn"]</label><input id="checkIn" name="checkIn" type="date" value="@(Model.CheckInDate?.ToString("yyyy-MM-dd"))" data-date-checkin /></div>
+            <div class="filter-field wide"><label for="checkOut">@L["CheckOut"]</label><input id="checkOut" name="checkOut" type="date" value="@(Model.CheckOutDate?.ToString("yyyy-MM-dd"))" data-date-checkout /></div>
+            <div class="filter-field"><label for="guests">@L["Guests"]</label><select id="guests" name="guests">@for (var i = 1; i <= 5; i++) { <option value="@i" selected="@(Model.Guests == i)">@i</option> }</select></div>
+            <div class="filter-field"><label for="type">@L["RoomType"]</label><select id="type" name="type"><option value="all">@L["AnyType"]</option>@foreach (var type in new[] { "Standard", "Deluxe", "Suite", "Family" }) { <option value="@type" selected="@(Model.Type == type)">@L.RoomType(type)</option> }</select></div>
+            <div class="filter-field"><label for="maxPrice">@L["MaxPrice"]</label><input id="maxPrice" name="maxPrice" type="number" min="0" step="5" value="@Model.MaxPrice" placeholder="250" /></div>
+            <button class="btn btn-primary filter-submit" type="submit">⌕ @L["SearchAvailability"]</button>
+        </form>
+
+        @if (ViewData["SearchError"] is string searchError)
+        {
+            <div class="app-alert error-alert inline-alert"><span>!</span><span>@searchError</span></div>
+        }
+    </div>
+</section>
+
+<section class="content-section rooms-results-section">
+    <div class="container">
+        <div class="results-toolbar reveal">
+            <div><strong>@Model.ResultCount</strong> <span>@L["ResultsFound"]</span></div>
+            <form method="get" class="sort-form">
+                <input type="hidden" name="checkIn" value="@(Model.CheckInDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="checkOut" value="@(Model.CheckOutDate?.ToString("yyyy-MM-dd"))" />
+                <input type="hidden" name="guests" value="@Model.Guests" />
+                <input type="hidden" name="type" value="@Model.Type" />
+                <input type="hidden" name="maxPrice" value="@Model.MaxPrice" />
+                <label for="sort">@L["SortBy"]</label>
+                <select id="sort" name="sort" onchange="this.form.submit()">
+                    <option value="recommended" selected="@(Model.Sort == "recommended")">@L["Recommended"]</option>
+                    <option value="price-low" selected="@(Model.Sort == "price-low")">@L["PriceLowHigh"]</option>
+                    <option value="price-high" selected="@(Model.Sort == "price-high")">@L["PriceHighLow"]</option>
+                    <option value="rating" selected="@(Model.Sort == "rating")">@L["TopRated"]</option>
+                </select>
+                <a class="clear-filter-link" asp-action="Index">@L["ClearFilters"]</a>
+            </form>
+        </div>
+
+        @if (Model.Rooms.Count == 0)
+        {
+            <div class="empty-state surface-card reveal"><span class="empty-icon">⌕</span><h2>@L["NoRooms"]</h2><p>@L["NoResultsHint"]</p><a class="btn btn-primary" asp-action="Index">@L["ResetSearch"]</a></div>
+        }
+        else
+        {
+            <div class="room-list-modern">
+                @foreach (var room in Model.Rooms)
+                {
+                    var profile = RoomExperience.For(room);
+                    <article class="room-result-card reveal @(room.IsAvailable ? "" : "disabled-room")">
+                        <div class="result-room-image">
+                            <img src="@profile.ImagePath" alt="@L.RoomType(room.Type)" loading="lazy" />
+                            <button type="button" class="favorite-button" data-favorite-room="@room.Id" title="@L["Favorite"]">♡</button>
+                            @if (profile.Rating >= 4.8m) { <span class="floating-label">✦ @L["PopularChoice"]</span> }
+                        </div>
+                        <div class="result-room-content">
+                            <div class="result-title-row">
+                                <div><span class="room-type">@L.RoomType(room.Type)</span><h2>@L["Room"] @room.RoomNumber</h2></div>
+                                <div class="rating-block"><div><strong>@L["Exceptional"]</strong><small>@profile.ReviewCount @L["Reviews"]</small></div><span>@profile.Rating.ToString("0.0")</span></div>
+                            </div>
+                            <p>@L[profile.DescriptionKey]</p>
+                            <div class="room-specs"><span>♙ @profile.Capacity @L["Guests"]</span><span>□ @profile.Size @L["SquareMeters"]</span><span>▱ @L[profile.BedKey]</span></div>
+                            <div class="amenity-preview">@foreach (var key in profile.AmenityKeys.Take(4)) { <span>✓ @L[key]</span> }</div>
+                            <div class="room-policy-tags"><span>✓ @L["FreeCancellation"]</span><span>✓ @L["NoPrepayment"]</span></div>
+                        </div>
+                        <div class="result-price-panel">
+                            <small>@L["StartingFrom"]</small>
+                            <strong>@L["Currency"]@room.PricePerNight.ToString("0.##")</strong>
+                            <span>@L["PerNight"]</span>
+                            <a class="btn btn-primary" asp-action="Details" asp-route-id="@room.Id" asp-route-checkIn="@(Model.CheckInDate?.ToString("yyyy-MM-dd"))" asp-route-checkOut="@(Model.CheckOutDate?.ToString("yyyy-MM-dd"))" asp-route-guests="@Model.Guests">@L["ViewRoom"]</a>
+                            @if (User.IsInRole(AppRoles.Admin))
+                            {
+                                <div class="admin-card-actions"><a asp-action="Edit" asp-route-id="@room.Id">✎ @L["EditRoom"]</a><a class="danger-link" asp-action="Delete" asp-route-id="@room.Id">× @L["DeleteRoom"]</a></div>
+                            }
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

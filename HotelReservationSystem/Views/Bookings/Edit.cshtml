@@ -1,0 +1,22 @@
+@model BookingCreateViewModel
+@{
+    ViewData["Title"] = L["EditBooking"];
+    var room = Model.Room!;
+    var profile = RoomExperience.For(room);
+    var totals = BookingService.CalculateTotal(room.PricePerNight, Model);
+}
+<section class="booking-page-header"><div class="container"><div><span class="section-kicker">MANAGE RESERVATION</span><h1>@L["EditBooking"]</h1><p>@L["ModifyDates"]</p></div></div></section>
+<section class="content-section booking-checkout-section">
+    <div class="container booking-checkout-layout">
+        <form asp-action="Edit" asp-route-id="@Model.BookingId" method="post" class="booking-form-modern reveal" data-booking-form data-price="@room.PricePerNight.ToString(CultureInfo.InvariantCulture)" data-breakfast-price="@BookingService.BreakfastPerGuestPerNight.ToString(CultureInfo.InvariantCulture)" data-pickup-price="@BookingService.AirportPickupPrice.ToString(CultureInfo.InvariantCulture)">
+            <partial name="_BookingFields" model="Model" />
+        </form>
+        <aside class="booking-summary-sticky reveal">
+            <div class="summary-room-image"><img src="@profile.ImagePath" alt="@L.RoomType(room.Type)" /><span>#@room.RoomNumber</span></div>
+            <div class="summary-room-title"><div><span class="room-type">@L.RoomType(room.Type)</span><h2>@L["Room"] @room.RoomNumber</h2></div><div class="mini-rating"><strong>@profile.Rating.ToString("0.0")</strong><span>★</span></div></div>
+            <div class="summary-date-row"><div><span>@L["CheckIn"]</span><strong data-summary-checkin>@Model.CheckInDate.ToString("dd MMM")</strong></div><span>→</span><div><span>@L["CheckOut"]</span><strong data-summary-checkout>@Model.CheckOutDate.ToString("dd MMM")</strong></div></div>
+            <div class="price-breakdown"><div><span>@L["Subtotal"]</span><strong>@L["Currency"]<b data-subtotal>@totals.Subtotal.ToString("0.##")</b></strong></div><div><span>@L["Extras"]</span><strong>@L["Currency"]<b data-extras>@totals.Extras.ToString("0.##")</b></strong></div><div class="discount-row"><span>@L["Discount"]</span><strong>-@L["Currency"]<b data-discount>@totals.Discount.ToString("0.##")</b></strong></div><div class="total-row"><span>@L["TotalDue"]</span><strong>@L["Currency"]<b data-total-price>@totals.Total.ToString("0.##")</b></strong></div></div>
+        </aside>
+    </div>
+</section>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

@@ -1,0 +1,54 @@
+@model BookingCreateViewModel
+@{
+    var room = Model.Room!;
+    var profile = RoomExperience.For(room);
+    var totals = BookingService.CalculateTotal(room.PricePerNight, Model);
+    var isEdit = Model.BookingId.HasValue;
+}
+<input asp-for="RoomId" type="hidden" />
+@if (Model.BookingId.HasValue) { <input asp-for="BookingId" type="hidden" /> }
+<div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+
+<div class="booking-step">
+    <div class="step-heading"><span>01</span><div><h2>@L["StayPeriod"]</h2><p>@L["SelectDates"]</p></div></div>
+    <div class="form-grid two-columns">
+        <div class="form-field"><label asp-for="CheckInDate">@L["CheckIn"]</label><input asp-for="CheckInDate" type="date" data-date-checkin /><span asp-validation-for="CheckInDate" class="field-validation"></span></div>
+        <div class="form-field"><label asp-for="CheckOutDate">@L["CheckOut"]</label><input asp-for="CheckOutDate" type="date" data-date-checkout /><span asp-validation-for="CheckOutDate" class="field-validation"></span></div>
+    </div>
+    <div class="form-field"><label asp-for="Guests">@L["NumberOfGuests"] <small>(@L["RoomCapacity"]: @profile.Capacity)</small></label><select asp-for="Guests" data-guests>@for (var i = 1; i <= profile.Capacity; i++) { <option value="@i">@i @L["Guests"]</option> }</select><span asp-validation-for="Guests" class="field-validation"></span></div>
+</div>
+
+<div class="booking-step">
+    <div class="step-heading"><span>02</span><div><h2>@L["AddOns"]</h2><p>@L["BookingOptions"]</p></div></div>
+    <div class="addon-grid">
+        <label class="addon-card">
+            <input asp-for="BreakfastIncluded" data-breakfast />
+            <span class="addon-check">✓</span>
+            <span class="addon-icon">☕</span>
+            <span class="addon-copy"><strong>@L["BreakfastIncluded"]</strong><small>@L["BreakfastDescription"]</small><b>@L["BreakfastPrice"]</b></span>
+        </label>
+        <label class="addon-card">
+            <input asp-for="AirportPickup" data-pickup />
+            <span class="addon-check">✓</span>
+            <span class="addon-icon">✈</span>
+            <span class="addon-copy"><strong>@L["AirportPickup"]</strong><small>@L["AirportPickupDescription"]</small><b>@L["PickupPrice"]</b></span>
+        </label>
+    </div>
+    <div class="form-field"><label asp-for="SpecialRequests">@L["SpecialRequests"]</label><textarea asp-for="SpecialRequests" rows="4" placeholder="@L["SpecialRequestsPlaceholder"]"></textarea><span asp-validation-for="SpecialRequests" class="field-validation"></span></div>
+</div>
+
+<div class="booking-step">
+    <div class="step-heading"><span>03</span><div><h2>@L["Payment"]</h2><p>@L["SelectPayment"]</p></div></div>
+    <div class="payment-options">
+        <label><input asp-for="PaymentMethod" type="radio" value="PayAtHotel" /><span><b>⌂</b><strong>@L["PayAtHotel"]</strong></span></label>
+        <label><input asp-for="PaymentMethod" type="radio" value="CardAtHotel" /><span><b>▣</b><strong>@L["CardAtHotel"]</strong></span></label>
+    </div>
+    <div class="promo-field"><div class="form-field"><label asp-for="PromoCode">@L["PromoCode"]</label><div class="input-action-group"><input asp-for="PromoCode" data-promo placeholder="AURORA10" /><button type="button" data-apply-promo>@L["ApplyCode"]</button></div><small>@L["PromoHint"]</small><span class="promo-feedback" data-promo-feedback data-valid="@L["PromoApplied"]" data-invalid="@L["PromoInvalid"]"></span></div></div>
+</div>
+
+<div class="booking-policy-note"><span>↻</span><div><strong>@L["CancellationPolicy"]</strong><p>@L["CancellationPolicyText"]</p></div></div>
+
+<div class="form-actions booking-form-actions">
+    <a class="btn btn-ghost" asp-controller="@(isEdit ? "Bookings" : "Rooms")" asp-action="@(isEdit ? "Details" : "Details")" asp-route-id="@(isEdit ? Model.BookingId : room.Id)">@L["Cancel"]</a>
+    <button class="btn btn-primary btn-lg" type="submit">@(isEdit ? L["UpdateBooking"] : L["CreateBooking"])</button>
+</div>

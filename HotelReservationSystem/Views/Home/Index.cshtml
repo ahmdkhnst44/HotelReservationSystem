@@ -1,0 +1,141 @@
+@model HomeViewModel
+@{
+    ViewData["Title"] = L["Home"];
+}
+
+<section class="hero-section premium-hero">
+    <div class="hero-backdrop" aria-hidden="true"></div>
+    <div class="container hero-container">
+        <div class="hero-content reveal">
+            <span class="eyebrow"><span class="eyebrow-dot"></span>@L["PremiumStay"]</span>
+            <h1>@L["HeroTitle"]</h1>
+            <p>@L["HeroText"]</p>
+            <div class="hero-actions">
+                <a class="btn btn-primary btn-lg" asp-controller="Rooms" asp-action="Index">@L["ExploreRooms"] <span aria-hidden="true">→</span></a>
+                @if (User.Identity?.IsAuthenticated == true)
+                {
+                    <a class="btn btn-glass btn-lg" asp-controller="Bookings" asp-action="Index">@L["MyBookingsButton"]</a>
+                }
+            </div>
+            <div class="hero-trust-row">
+                <span><b>✓</b>@L["FreeCancellation"]</span>
+                <span><b>✓</b>@L["NoPrepayment"]</span>
+                <span><b>✓</b>@L["InstantConfirmation"]</span>
+            </div>
+        </div>
+
+        <div class="hero-review-card reveal" aria-label="Guest rating">
+            <div class="rating-score">4.9</div>
+            <div><strong>@L["Exceptional"]</strong><span>★★★★★</span><small>1,240 @L["Reviews"]</small></div>
+        </div>
+
+        <form class="global-search-card reveal" asp-controller="Rooms" asp-action="Index" method="get">
+            <div class="search-cell destination-cell">
+                <span class="search-icon">⌂</span>
+                <div><label>@L["Destination"]</label><strong>@L["AppName"]</strong></div>
+            </div>
+            <div class="search-cell">
+                <span class="search-icon">↳</span>
+                <div><label for="heroCheckIn">@L["CheckIn"]</label><input id="heroCheckIn" name="checkIn" type="date" value="@Model.CheckInDate.ToString("yyyy-MM-dd")" data-date-checkin /></div>
+            </div>
+            <div class="search-cell">
+                <span class="search-icon">↗</span>
+                <div><label for="heroCheckOut">@L["CheckOut"]</label><input id="heroCheckOut" name="checkOut" type="date" value="@Model.CheckOutDate.ToString("yyyy-MM-dd")" data-date-checkout /></div>
+            </div>
+            <div class="search-cell">
+                <span class="search-icon">♙</span>
+                <div><label for="heroGuests">@L["Guests"]</label><select id="heroGuests" name="guests"><option value="1">1</option><option value="2" selected>2</option><option value="3">3</option><option value="4">4</option><option value="5">5</option></select></div>
+            </div>
+            <button class="btn btn-primary search-button" type="submit"><span>⌕</span>@L["SearchAvailability"]</button>
+        </form>
+    </div>
+</section>
+
+<section class="trust-strip">
+    <div class="container trust-grid">
+        <div class="trust-item reveal"><span class="trust-icon">◇</span><div><strong>@L["BestPrice"]</strong><small>@L["NoCardFees"]</small></div></div>
+        <div class="trust-item reveal"><span class="trust-icon">✓</span><div><strong>@L["SecureBooking"]</strong><small>@L["InstantConfirmation"]</small></div></div>
+        <div class="trust-item reveal"><span class="trust-icon">↻</span><div><strong>@L["FlexibleCancellation"]</strong><small>@L["FreeCancellationText"]</small></div></div>
+        <div class="trust-item reveal"><span class="trust-icon">◎</span><div><strong>24/7</strong><small>@L["FeatureReception"]</small></div></div>
+    </div>
+</section>
+
+<section class="content-section featured-section">
+    <div class="container">
+        <div class="section-heading reveal">
+            <div><span class="section-kicker">CURATED STAYS</span><h2>@L["FeaturedRooms"]</h2><p>@L["FeaturedText"]</p></div>
+            <a class="text-link" asp-controller="Rooms" asp-action="Index">@L["ViewAll"] <span>→</span></a>
+        </div>
+
+        <div class="room-grid premium-room-grid">
+            @foreach (var room in Model.FeaturedRooms)
+            {
+                var profile = RoomExperience.For(room);
+                <article class="room-card premium-room-card reveal">
+                    <div class="room-card-media">
+                        <img src="@profile.ImagePath" alt="@L.RoomType(room.Type)" loading="lazy" />
+                        <span class="floating-label">✦ @L["FeaturedBadge"]</span>
+                        <button type="button" class="favorite-button" data-favorite-room="@room.Id" title="@L["Favorite"]" aria-label="@L["Favorite"]">♡</button>
+                        <span class="room-number-badge">#@room.RoomNumber</span>
+                    </div>
+                    <div class="room-card-body">
+                        <div class="room-card-heading">
+                            <div><span class="room-type">@L.RoomType(room.Type)</span><h3>@L["Room"] @room.RoomNumber</h3></div>
+                            <div class="mini-rating"><strong>@profile.Rating.ToString("0.0")</strong><span>★</span></div>
+                        </div>
+                        <p class="room-description">@L[profile.DescriptionKey]</p>
+                        <div class="room-specs"><span>♙ @profile.Capacity @L["Guests"]</span><span>□ @profile.Size @L["SquareMeters"]</span><span>▱ @L[profile.BedKey]</span></div>
+                        <div class="room-policy-tags"><span>✓ @L["FreeCancellation"]</span><span>✓ @L["NoPrepayment"]</span></div>
+                        <div class="room-card-footer">
+                            <div class="price"><small>@L["StartingFrom"]</small><strong>@L["Currency"]@room.PricePerNight.ToString("0.##")</strong><span>/ @L["PerNight"]</span></div>
+                            <a class="btn btn-soft" asp-controller="Rooms" asp-action="Details" asp-route-id="@room.Id">@L["ViewDetails"]</a>
+                        </div>
+                    </div>
+                </article>
+            }
+        </div>
+    </div>
+</section>
+
+<section class="experience-section">
+    <div class="container">
+        <div class="section-heading centered reveal"><div><span class="section-kicker">AURORA EXPERIENCE</span><h2>@L["ExperienceTitle"]</h2><p>@L["ExperienceText"]</p></div></div>
+        <div class="experience-grid">
+            <article class="experience-card large reveal"><img src="~/images/gallery-spa.jpg" alt="Spa" loading="lazy" /><div><span>01</span><h3>@L["SpaTitle"]</h3><p>@L["SpaText"]</p></div></article>
+            <article class="experience-card reveal"><img src="~/images/gallery-restaurant.jpg" alt="Dining" loading="lazy" /><div><span>02</span><h3>@L["DiningTitle"]</h3><p>@L["DiningText"]</p></div></article>
+            <article class="experience-card reveal"><img src="~/images/gallery-lounge.jpg" alt="Lounge" loading="lazy" /><div><span>03</span><h3>@L["LoungeTitle"]</h3><p>@L["LoungeText"]</p></div></article>
+        </div>
+    </div>
+</section>
+
+<section class="direct-benefits-section">
+    <div class="container direct-benefits-layout">
+        <div class="offer-panel reveal">
+            <span class="section-kicker">@L["SpecialOffer"]</span>
+            <h2>@L["SpecialOfferTitle"]</h2>
+            <p>@L["SpecialOfferText"]</p>
+            <div class="promo-code"><span>@L["UseCode"]</span><strong>STAY3</strong><button type="button" data-copy-code="STAY3">⧉</button></div>
+            <a class="btn btn-light" asp-controller="Rooms" asp-action="Index">@L["ExploreRooms"]</a>
+        </div>
+        <div class="benefit-content reveal">
+            <span class="section-kicker">@L["WhyBookDirect"]</span>
+            <h2>@L["BookWithConfidence"]</h2>
+            <div class="benefit-list">
+                <div><span>01</span><div><h3>@L["Contactless"]</h3><p>@L["ContactlessText"]</p></div></div>
+                <div><span>02</span><div><h3>@L["FlexibleDates"]</h3><p>@L["FlexibleDatesText"]</p></div></div>
+                <div><span>03</span><div><h3>@L["LiveTotal"]</h3><p>@L["LiveTotalText"]</p></div></div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<section class="reviews-section">
+    <div class="container">
+        <div class="section-heading reveal"><div><span class="section-kicker">TRUSTED BY GUESTS</span><h2>@L["GuestReviews"]</h2></div><div class="review-overview"><strong>4.9</strong><span>★★★★★</span><small>1,240 @L["Reviews"]</small></div></div>
+        <div class="review-grid">
+            <article class="review-card reveal"><span>★★★★★</span><p>“@L["ReviewQuote1"]”</p><div><strong>@L["ReviewerOne"]</strong><small>@L["Deluxe"]</small></div></article>
+            <article class="review-card reveal"><span>★★★★★</span><p>“@L["ReviewQuote2"]”</p><div><strong>@L["ReviewerTwo"]</strong><small>@L["Suite"]</small></div></article>
+            <article class="review-card reveal"><span>★★★★★</span><p>“@L["ReviewQuote3"]”</p><div><strong>@L["ReviewerThree"]</strong><small>@L["Family"]</small></div></article>
+        </div>
+    </div>
+</section>

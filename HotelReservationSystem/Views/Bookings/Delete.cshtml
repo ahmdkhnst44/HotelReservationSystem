@@ -1,0 +1,6 @@
+@model Booking
+@{
+    ViewData["Title"] = L["CancelBooking"];
+    var profile = RoomExperience.For(Model.Room);
+}
+<section class="content-section danger-page"><div class="container narrow-container"><div class="surface-card danger-confirmation-card reveal"><div class="danger-icon">!</div><span class="section-kicker">@L["CancellationPolicy"]</span><h1>@L["CancelBookingQuestion"]</h1><p>@L["CannotUndo"]</p><div class="cancel-booking-preview"><img src="@profile.ImagePath" alt="@L.RoomType(Model.Room.Type)" /><div><span class="room-type">@L.RoomType(Model.Room.Type)</span><h2>@L["Room"] @Model.Room.RoomNumber</h2><span>@Model.CheckInDate.ToString("dd MMM yyyy") → @Model.CheckOutDate.ToString("dd MMM yyyy")</span><strong>@Model.ConfirmationCode</strong></div></div><form asp-action="Delete" method="post"><input type="hidden" asp-for="Id" /><div class="form-actions centered-actions"><a class="btn btn-ghost" asp-action="Details" asp-route-id="@Model.Id">@L["Back"]</a><button class="btn btn-danger btn-lg" type="submit">@L["CancelBooking"]</button></div></form></div></div></section>

@@ -1,0 +1,67 @@
+@model BookingListViewModel
+@{
+    ViewData["Title"] = Model.IsAdmin ? L["AllBookings"] : L["Bookings"];
+    var totalStays = Model.UpcomingCount + Model.CurrentCount + Model.CompletedCount;
+    var finalMetric = Model.IsAdmin ? $"{L["Currency"]}{Model.TotalRevenue:0.##}" : totalStays.ToString();
+}
+<section class="bookings-dashboard-header">
+    <div class="container">
+        <div class="page-heading-row reveal"><div><span class="section-kicker">@(Model.IsAdmin ? "RESERVATION CONTROL" : "MY AURORA")</span><h1>@(Model.IsAdmin ? L["AllBookings"] : L["Bookings"])</h1><p>@(Model.IsAdmin ? L["AdminView"] : L["CustomerView"])</p></div><a class="btn btn-light" asp-controller="Rooms" asp-action="Index">＋ @L["BookRoom"]</a></div>
+        <div class="booking-metrics reveal">
+            <div><span class="metric-icon teal">↗</span><div><small>@L["UpcomingBookings"]</small><strong>@Model.UpcomingCount</strong></div></div>
+            <div><span class="metric-icon amber">●</span><div><small>@L["CurrentBookings"]</small><strong>@Model.CurrentCount</strong></div></div>
+            <div><span class="metric-icon violet">✓</span><div><small>@L["CompletedBookings"]</small><strong>@Model.CompletedCount</strong></div></div>
+            <div><span class="metric-icon blue">◇</span><div><small>@(Model.IsAdmin ? L["Revenue"] : L["TotalStays"])</small><strong>@finalMetric</strong></div></div>
+        </div>
+    </div>
+</section>
+
+<section class="content-section bookings-section-modern">
+    <div class="container">
+        <div class="booking-toolbar reveal">
+            <div class="status-tabs">
+                <a class="@(Model.Status == "all" ? "active" : "")" asp-action="Index" asp-route-status="all" asp-route-search="@Model.Search">@L["AllStatuses"]</a>
+                <a class="@(Model.Status == "upcoming" ? "active" : "")" asp-action="Index" asp-route-status="upcoming" asp-route-search="@Model.Search">@L["UpcomingBookings"] <b>@Model.UpcomingCount</b></a>
+                <a class="@(Model.Status == "current" ? "active" : "")" asp-action="Index" asp-route-status="current" asp-route-search="@Model.Search">@L["CurrentBookings"] <b>@Model.CurrentCount</b></a>
+                <a class="@(Model.Status == "completed" ? "active" : "")" asp-action="Index" asp-route-status="completed" asp-route-search="@Model.Search">@L["CompletedBookings"] <b>@Model.CompletedCount</b></a>
+            </div>
+            <form method="get" class="booking-search"><input type="hidden" name="status" value="@Model.Status" /><span>⌕</span><input name="search" value="@Model.Search" placeholder="@L["SearchBookings"]" /><button type="submit">@L["SearchAvailability"]</button></form>
+        </div>
+
+        @if (Model.Bookings.Count == 0)
+        {
+            <div class="empty-state surface-card reveal"><span class="empty-icon">▣</span><h2>@L["NoBookings"]</h2><p>@L["StartBooking"]</p><a class="btn btn-primary" asp-controller="Rooms" asp-action="Index">@L["ExploreRooms"]</a></div>
+        }
+        else
+        {
+            <div class="booking-list-modern">
+                @foreach (var booking in Model.Bookings)
+                {
+                    var profile = RoomExperience.For(booking.Room);
+                    var isPast = booking.CheckOutDate.Date <= DateTime.Today;
+                    var isCurrent = booking.CheckInDate.Date <= DateTime.Today && booking.CheckOutDate.Date > DateTime.Today;
+                    var stateClass = isPast ? "past" : isCurrent ? "current" : "upcoming";
+                    var stateText = isPast ? L["Completed"] : isCurrent ? L["Today"] : L["Active"];
+                    <article class="booking-card-modern reveal">
+                        <a class="booking-card-image" asp-action="Details" asp-route-id="@booking.Id"><img src="@profile.ImagePath" alt="@L.RoomType(booking.Room.Type)" /><span class="booking-state @stateClass">● @stateText</span></a>
+                        <div class="booking-card-content">
+                            <div class="booking-reference-row"><span>@L["BookingReference"]: <strong>@booking.ConfirmationCode</strong></span><small>@booking.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</small></div>
+                            <div class="booking-title-row"><div><span class="room-type">@L.RoomType(booking.Room.Type)</span><h2>@L["Room"] @booking.Room.RoomNumber</h2></div><div class="booking-total"><small>@L["TotalDue"]</small><strong>@L["Currency"]@booking.TotalPrice.ToString("0.##")</strong></div></div>
+                            <div class="booking-stay-info"><div><small>@L["CheckIn"]</small><strong>@booking.CheckInDate.ToString("dd MMM yyyy")</strong></div><span>→</span><div><small>@L["CheckOut"]</small><strong>@booking.CheckOutDate.ToString("dd MMM yyyy")</strong></div><div><small>@L["Guests"]</small><strong>@booking.Guests</strong></div><div><small>@L["Nights"]</small><strong>@((booking.CheckOutDate - booking.CheckInDate).Days)</strong></div></div>
+                            <div class="booking-extra-tags">
+                                @if (booking.BreakfastIncluded) { <span>☕ @L["AddonBreakfast"]</span> }
+                                @if (booking.AirportPickup) { <span>✈ @L["AddonPickup"]</span> }
+                                @if (!booking.BreakfastIncluded && !booking.AirportPickup) { <span>@L["NoExtras"]</span> }
+                            </div>
+                            @if (Model.IsAdmin) { <div class="admin-guest-line"><span>♙</span><div><small>@L["Guest"]</small><strong>@booking.User.FullName</strong><span>@booking.User.Email</span></div></div> }
+                        </div>
+                        <div class="booking-card-actions">
+                            <a class="btn btn-primary" asp-action="Details" asp-route-id="@booking.Id">@L["ManageBooking"]</a>
+                            @if (!isPast || Model.IsAdmin) { <a class="btn btn-ghost" asp-action="Edit" asp-route-id="@booking.Id">@L["EditBooking"]</a><a class="text-danger-link" asp-action="Delete" asp-route-id="@booking.Id">@L["CancelBooking"]</a> }
+                        </div>
+                    </article>
+                }
+            </div>
+        }
+    </div>
+</section>

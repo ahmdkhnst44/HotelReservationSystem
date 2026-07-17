@@ -1,0 +1,36 @@
+@model Booking
+@{
+    ViewData["Title"] = L["BookingDetails"];
+    var profile = RoomExperience.For(Model.Room);
+    var isPast = Model.CheckOutDate.Date <= DateTime.Today;
+    var isCurrent = Model.CheckInDate.Date <= DateTime.Today && Model.CheckOutDate.Date > DateTime.Today;
+    var stateClass = isPast ? "past" : isCurrent ? "current" : "upcoming";
+    var stateText = isPast ? L["Completed"] : isCurrent ? L["Today"] : L["Active"];
+    var nights = Math.Max(1, (Model.CheckOutDate - Model.CheckInDate).Days);
+    var extras = (Model.BreakfastIncluded ? BookingService.BreakfastPerGuestPerNight * Model.Guests * nights : 0m) + (Model.AirportPickup ? BookingService.AirportPickupPrice : 0m);
+    var subtotal = Model.TotalPrice - extras + Model.DiscountAmount;
+}
+<section class="booking-detail-hero"><div class="container"><div class="confirmation-heading reveal"><div class="confirmation-icon">✓</div><div><span class="section-kicker">@L["BookingConfirmed"]</span><h1>@L["BookingDetails"]</h1><p>@L["ConfirmationCode"]: <strong>@Model.ConfirmationCode</strong></p></div><span class="booking-state @stateClass">● @stateText</span></div></div></section>
+
+<section class="content-section booking-detail-section">
+    <div class="container booking-detail-layout">
+        <div class="booking-detail-main">
+            <article class="booking-room-banner reveal"><img src="@profile.ImagePath" alt="@L.RoomType(Model.Room.Type)" /><div class="banner-overlay"><span class="room-type">@L.RoomType(Model.Room.Type)</span><h2>@L["Room"] @Model.Room.RoomNumber</h2><div class="room-specs"><span>♙ @Model.Guests @L["Guests"]</span><span>□ @profile.Size @L["SquareMeters"]</span><span>▱ @L[profile.BedKey]</span></div></div><a asp-controller="Rooms" asp-action="Details" asp-route-id="@Model.RoomId">@L["ViewRoom"] →</a></article>
+
+            <article class="detail-section-card reveal"><div class="card-title-row"><h2>@L["StayPeriod"]</h2><span class="booking-state @stateClass">@stateText</span></div><div class="stay-period-large"><div><small>@L["CheckIn"]</small><strong>@Model.CheckInDate.ToString("dd")</strong><span>@Model.CheckInDate.ToString("MMMM yyyy")</span></div><div class="stay-connector"><span>@nights @L["Nights"]</span><i></i><b>→</b></div><div><small>@L["CheckOut"]</small><strong>@Model.CheckOutDate.ToString("dd")</strong><span>@Model.CheckOutDate.ToString("MMMM yyyy")</span></div></div></article>
+
+            <article class="detail-section-card reveal"><h2>@L["IncludedServices"]</h2><div class="selected-services">
+                <div class="selected"><span>⌁</span><div><strong>@L["FeatureWifi"]</strong><small>@L["IncludedServices"]</small></div><b>✓</b></div>
+                @if (Model.BreakfastIncluded) { <div class="selected"><span>☕</span><div><strong>@L["BreakfastIncluded"]</strong><small>@L["BreakfastDescription"]</small></div><b>✓</b></div> }
+                @if (Model.AirportPickup) { <div class="selected"><span>✈</span><div><strong>@L["AirportPickup"]</strong><small>@L["AirportPickupDescription"]</small></div><b>✓</b></div> }
+            </div>@if (!string.IsNullOrWhiteSpace(Model.SpecialRequests)) { <div class="special-request-box"><strong>@L["SpecialRequests"]</strong><p>@Model.SpecialRequests</p></div> }</article>
+
+            <article class="detail-section-card reveal"><h2>@L["BookingTimeline"]</h2><div class="booking-timeline"><div class="done"><span>✓</span><div><strong>@L["BookingConfirmed"]</strong><small>@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy, HH:mm")</small></div></div><i></i><div class="@(isPast || isCurrent ? "done" : "")"><span>@(isPast || isCurrent ? "✓" : "2")</span><div><strong>@L["CheckIn"]</strong><small>@Model.CheckInDate.ToString("dd MMM yyyy")</small></div></div><i></i><div class="@(isPast ? "done" : "")"><span>@(isPast ? "✓" : "3")</span><div><strong>@L["Complete"]</strong><small>@Model.CheckOutDate.ToString("dd MMM yyyy")</small></div></div></div></article>
+        </div>
+
+        <aside class="booking-detail-sidebar reveal">
+            <article class="detail-side-card"><h2>@L["BookingSummary"]</h2><div class="side-info-list"><div><span>@L["ConfirmationCode"]</span><strong>@Model.ConfirmationCode</strong></div><div><span>@L["Guest"]</span><strong>@Model.User.FullName</strong></div><div><span>@L["Guests"]</span><strong>@Model.Guests</strong></div><div><span>@L["PaymentMethod"]</span><strong>@L[Model.PaymentMethod]</strong></div><div><span>@L["CreatedOn"]</span><strong>@Model.CreatedAt.ToLocalTime().ToString("dd MMM yyyy")</strong></div></div><hr /><div class="price-breakdown"><div><span>@L["Subtotal"]</span><strong>@L["Currency"]@subtotal.ToString("0.##")</strong></div><div><span>@L["Extras"]</span><strong>@L["Currency"]@extras.ToString("0.##")</strong></div><div class="discount-row"><span>@L["Discount"]</span><strong>-@L["Currency"]@Model.DiscountAmount.ToString("0.##")</strong></div><div class="total-row"><span>@L["TotalDue"]</span><strong>@L["Currency"]@Model.TotalPrice.ToString("0.##")</strong></div></div></article>
+            <div class="side-action-stack"><button class="btn btn-ghost" type="button" data-print-booking>▣ @L["PrintBooking"]</button>@if (!isPast || User.IsInRole(AppRoles.Admin)) { <a class="btn btn-primary" asp-action="Edit" asp-route-id="@Model.Id">@L["EditBooking"]</a><a class="btn btn-danger" asp-action="Delete" asp-route-id="@Model.Id">@L["CancelBooking"]</a> }<a class="text-link centered-link" asp-action="Index">← @L["Back"]</a></div>
+        </aside>
+    </div>
+</section>

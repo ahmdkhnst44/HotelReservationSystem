@@ -1,0 +1,56 @@
+@model Room
+@{
+    ViewData["Title"] = $"{L["Room"]} {Model.RoomNumber}";
+    var profile = RoomExperience.For(Model);
+    var checkIn = ViewData["CheckIn"]?.ToString() ?? DateTime.Today.AddDays(1).ToString("yyyy-MM-dd");
+    var checkOut = ViewData["CheckOut"]?.ToString() ?? DateTime.Today.AddDays(2).ToString("yyyy-MM-dd");
+    var guests = ViewData["Guests"] is int count ? count : 1;
+}
+
+<section class="room-detail-hero">
+    <div class="container">
+        <div class="room-breadcrumb reveal"><a asp-action="Index">@L["Rooms"]</a><span>›</span><span>@L.RoomType(Model.Type)</span><span>›</span><strong>@L["Room"] @Model.RoomNumber</strong></div>
+        <div class="room-gallery reveal">
+            <div class="gallery-main"><img src="@profile.ImagePath" alt="@L.RoomType(Model.Type)" /><span class="room-number-badge large">#@Model.RoomNumber</span><button class="favorite-button large" data-favorite-room="@Model.Id" type="button">♡</button></div>
+            <div class="gallery-side"><img src="~/images/gallery-lounge.jpg" alt="Lounge" /><img src="~/images/gallery-spa.jpg" alt="Spa" /><img src="~/images/gallery-restaurant.jpg" alt="Dining" /><div class="gallery-count"><span>▦</span>@L["RoomGallery"]</div></div>
+        </div>
+    </div>
+</section>
+
+<section class="content-section room-detail-section">
+    <div class="container detail-layout-modern">
+        <div class="room-detail-main-modern">
+            <div class="room-title-block reveal">
+                <div><span class="room-type">@L.RoomType(Model.Type)</span><h1>@L["Room"] @Model.RoomNumber</h1><div class="room-specs"><span>♙ @profile.Capacity @L["Guests"]</span><span>□ @profile.Size @L["SquareMeters"]</span><span>▱ @L[profile.BedKey]</span></div></div>
+                <div class="rating-block large"><div><strong>@L["Exceptional"]</strong><small>@profile.ReviewCount @L["Reviews"]</small></div><span>@profile.Rating.ToString("0.0")</span></div>
+            </div>
+
+            <div class="detail-section-card reveal"><h2>@L["RoomDetails"]</h2><p>@L[profile.DescriptionKey]</p></div>
+            <div class="detail-section-card reveal"><h2>@L["Amenities"]</h2><div class="amenities-grid">@foreach (var key in profile.AmenityKeys) { <span><b>✓</b>@L[key]</span> }</div></div>
+            <div class="policy-card reveal"><div><span>↻</span><div><h3>@L["FlexibleCancellation"]</h3><p>@L["FreeCancellationText"]</p></div></div><div><span>◇</span><div><h3>@L["NoCardFees"]</h3><p>@L["NoPrepayment"]</p></div></div></div>
+        </div>
+
+        <aside class="booking-side-card-modern reveal">
+            <div class="side-price"><div><small>@L["StartingFrom"]</small><strong>@L["Currency"]@Model.PricePerNight.ToString("0.##")</strong><span>/ @L["PerNight"]</span></div><span class="availability-badge @(Model.IsAvailable ? "" : "unavailable")">● @(Model.IsAvailable ? L["Available"] : L["OutOfService"])</span></div>
+            @if (Model.IsAvailable)
+            {
+                <form asp-controller="Bookings" asp-action="Create" method="get" class="stacked-form booking-widget">
+                    <input type="hidden" name="roomId" value="@Model.Id" />
+                    <div class="date-pair"><div class="form-field"><label for="detailCheckIn">@L["CheckIn"]</label><input id="detailCheckIn" name="checkIn" type="date" value="@checkIn" data-date-checkin /></div><div class="form-field"><label for="detailCheckOut">@L["CheckOut"]</label><input id="detailCheckOut" name="checkOut" type="date" value="@checkOut" data-date-checkout /></div></div>
+                    <div class="form-field"><label for="detailGuests">@L["Guests"]</label><select id="detailGuests" name="guests">@for (var i = 1; i <= profile.Capacity; i++) { <option value="@i" selected="@(guests == i)">@i</option> }</select></div>
+                    <div class="booking-widget-benefits"><span>✓ @L["FreeCancellation"]</span><span>✓ @L["InstantConfirmation"]</span></div>
+                    <button class="btn btn-primary btn-lg w-100" type="submit">@L["BookNow"]</button>
+                    <small class="center-note">@L["TermsAgree"]</small>
+                </form>
+            }
+            else
+            {
+                <div class="app-alert error-alert inline-alert"><span>!</span><span>@L["OutOfService"]</span></div>
+            }
+            @if (User.IsInRole(AppRoles.Admin))
+            {
+                <div class="admin-side-actions"><a class="btn btn-ghost w-100" asp-action="Edit" asp-route-id="@Model.Id">@L["EditRoom"]</a></div>
+            }
+        </aside>
+    </div>
+</section>

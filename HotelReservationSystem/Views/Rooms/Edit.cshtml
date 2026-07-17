@@ -1,0 +1,15 @@
+@model Room
+@{
+    ViewData["Title"] = L["EditRoom"];
+}
+<section class="form-page">
+    <div class="container narrow-container">
+        <div class="page-heading-row"><div><span class="section-kicker">ADMIN</span><h1>@L["EditRoom"] #@Model.RoomNumber</h1><p>@L["RoomDetailsText"]</p></div></div>
+        <form asp-action="Edit" method="post" class="surface-card app-form-card">
+            <input asp-for="Id" type="hidden" />
+            <partial name="_RoomForm" model="Model" />
+            <div class="form-actions"><a class="btn btn-ghost" asp-action="Index">@L["Cancel"]</a><button class="btn btn-primary" type="submit">@L["Save"]</button></div>
+        </form>
+    </div>
+</section>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }

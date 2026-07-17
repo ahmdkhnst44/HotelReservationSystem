@@ -1,0 +1,33 @@
+@model LoginViewModel
+@{
+    ViewData["Title"] = L["Login"];
+}
+<section class="auth-page">
+    <div class="container">
+        <div class="auth-shell surface-card">
+            <div class="auth-visual">
+                <div class="auth-visual-content">
+                    <span class="brand-mark auth-brand">A</span>
+                    <span class="section-kicker">WELCOME TO AURORA</span>
+                    <h1>@L["LoginText"]</h1>
+                    <p>@L["HeroText"]</p>
+                    <div class="auth-points"><span>✓ @L["FeatureOneTitle"]</span><span>✓ @L["FeatureTwoTitle"]</span><span>✓ @L["Languages"]</span></div>
+                </div>
+            </div>
+            <div class="auth-form-panel">
+                <div class="auth-heading"><span class="section-kicker">ACCOUNT</span><h2>@L["Login"]</h2><p>@L["LoginText"]</p></div>
+                <form asp-action="Login" method="post" class="stacked-form">
+                    <input asp-for="ReturnUrl" type="hidden" />
+                    <div asp-validation-summary="ModelOnly" class="validation-summary"></div>
+                    <div class="form-field"><label asp-for="Email">@L["Email"]</label><input asp-for="Email" class="form-control" autocomplete="email" placeholder="name@example.com" /><span asp-validation-for="Email" class="field-validation"></span></div>
+                    <div class="form-field"><label asp-for="Password">@L["Password"]</label><div class="password-field"><input asp-for="Password" class="form-control" autocomplete="current-password" /><button class="password-toggle" type="button" data-password-toggle aria-label="Show password">◉</button></div><span asp-validation-for="Password" class="field-validation"></span></div>
+                    <label class="check-field"><input asp-for="RememberMe" /><span>@L["RememberMe"]</span></label>
+                    <button class="btn btn-primary btn-lg w-100" type="submit">@L["Login"]</button>
+                </form>
+                <p class="auth-switch">@L["NoAccount"] <a asp-action="Register">@L["Register"]</a></p>
+                <div class="demo-hint"><strong>@L["CustomerAccount"]</strong><code>guest@hotel.local</code><code>Guest123</code></div>
+            </div>
+        </div>
+    </div>
+</section>
+@section Scripts { <partial name="_ValidationScriptsPartial" /> }
